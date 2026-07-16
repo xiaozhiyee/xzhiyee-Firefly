@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { glob } from "glob";
+// @ts-ignore
 import subsetFont from "subset-font";
 import { fontConfig, fontsList } from "../src/config";
 import { collectUsedFontCssVars, toPublicPath } from "../src/utils/fontHelper";
@@ -70,6 +71,8 @@ function getLocalSubsetFonts(): LocalSubsetFont[] {
 				);
 				continue;
 			}
+			// @ts-ignore
+			// @ts-ignore
 			result.push({
 				id: `${f.name}-${v.weight || "default"}`.toLowerCase().replace(/\s+/g, "-"),
 				family: f.name,
