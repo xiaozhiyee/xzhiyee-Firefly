@@ -6,7 +6,7 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "xzhiyee Blog",
+	title: "希织云町",
 
 	// 站点副标题
 	subtitle: "我见青山应如是",
@@ -81,7 +81,7 @@ export const siteConfig: SiteConfig = {
 			type: "icon", value: "material-symbols:home-outline"
 		},
 		// 导航栏标题
-		title: "xzhiyee Blog",
+		title: "希织云町",
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中

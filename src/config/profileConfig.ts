@@ -9,10 +9,10 @@ export const profileConfig: ProfileConfig = {
 	avatar: "assets/images/111.webp",
 
 	// 名字
-	name: "xzhiyee",
+	name: "希织云町",
 
 	// 个人签名
-	bio: "Hello, I'm xzhiyee.",
+	bio: "Hello, I'm 希织云町.",
 
 	// 链接配置
 	// 已经预装的图标集：fa7-brands，fa7-regular，fa7-solid，material-symbols，simple-icons
