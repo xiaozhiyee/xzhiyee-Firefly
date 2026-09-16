@@ -2,7 +2,7 @@
 title: Astro配置Twikoo评论系统
 published: 2026-09-16
 description: Astro配置Twikoo评论系统。
-image: ./w3.avif
+image: ../images/w3.avif
 tags: [twikoo, 评论系统]
 category: 博客指南
 draft: false
