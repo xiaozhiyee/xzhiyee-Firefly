@@ -6,20 +6,23 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "希织云町",
+	title: "希织云庭",
 
 	// 站点副标题
-	subtitle: "我见青山应如是",
+	subtitle: "希织云庭｜藏在云里的技术札记",
 
 	// 站点 URL
 	site_url: "https://blog.xzhiyee.com",
 
 	// 站点描述
 	description:
-		"Firefly 是一款基于 Astro 框架和 Fuwari 模板开发的清新美观且现代化个人博客主题模板，专为技术爱好者和内容创作者设计。该主题融合了现代 Web 技术栈，提供了丰富的功能模块和高度可定制的界面，让您能够轻松打造出专业且美观的个人博客网站。",
+		"希织云庭，一处云端自留地。在这里编织技术碎片、源码阅读笔记与日常思考，沉淀所见所学。",
 
 	// 站点关键词
 	keywords: [
+		"希织云庭",
+		"希织",
+		"希织云",
 		"小智",
 		"xzhiyee",
 		"Firefly",
@@ -81,7 +84,7 @@ export const siteConfig: SiteConfig = {
 			type: "icon", value: "material-symbols:home-outline"
 		},
 		// 导航栏标题
-		title: "希织云町",
+		title: "希织云庭 · 小智",
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中
