@@ -2,7 +2,7 @@
 title: （auto-fit，auto-fill）两行代码就能适应任何屏幕？
 published: 2026-09-16
 description: （auto-fit，auto-fill）两行代码就能适应任何屏幕？
-image: ../images/w3.avif
+image: ./z1.avif
 tags: [auto-fit, auto-fill]
 category: 技术笔记
 draft: false
@@ -126,5 +126,8 @@ grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 原文章：[https://juejin.cn/post/7497895954101403688](https://juejin.cn/post/7497895954101403688)
 
 
+
+
+**完结！**
 
 
