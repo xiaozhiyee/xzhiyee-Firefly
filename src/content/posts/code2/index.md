@@ -1,7 +1,6 @@
 ---
 title: java位运算
 published: 2026-09-16
-description: java位运算.
 image: ./z2.avif
 tags: [java, bitwise, operations，位运算]
 category: 技术笔记

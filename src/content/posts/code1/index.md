@@ -1,7 +1,6 @@
 ---
 title: （auto-fit，auto-fill）两行代码就能适应任何屏幕？
 published: 2026-09-16
-description: （auto-fit，auto-fill）两行代码就能适应任何屏幕？
 image: ./z1.avif
 tags: [auto-fit, auto-fill]
 category: 技术笔记

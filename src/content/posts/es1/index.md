@@ -1,7 +1,6 @@
 ---
 title: Elasticsearch安装（linux）
 published: 2026-09-17
-description: Elasticsearch安装（linux）
 image: ./z4.avif
 tags: [Elasticsearch, Linux, 教程]
 category: 技术笔记

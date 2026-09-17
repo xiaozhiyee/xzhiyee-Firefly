@@ -1,7 +1,6 @@
 ---
 title: Docker容器内mysql忘记密码如何重置?
 published: 2026-09-17
-description: Docker容器内mysql忘记密码如何重置?
 image: ./z3.avif
 tags: [docker, mysql, 教程]
 category: 技术笔记
