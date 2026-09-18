@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="https://xzhiyee.com/logo.webp" />
+    <link rel="icon" href="https://xzhiyee.com/logo.webp" />
+    <link rel="sitemap" href="https://blog.xzhiyee.com/sitemap-index.xml" />
+    <link
+        rel="alternate"
+        type="application/rss+xml"
+        title="xzhiyee 's"
+        href="https://blog.xzhiyee.com/rss.xml"
+    />
+    <meta name="generator" content="Astro" />
+
+    <!-- ============ 优化①（最关键）：预加载背景图 ============
+         浏览器解析 <head> 到这一行就立刻开始下载图片，
+         不再等页面底部 <script> 里的 new Image() 才发起请求，
+         通常能提前几百毫秒拿到图。
+         fetchpriority="high" 让图片在与字体/CSS 竞争带宽时优先。 -->
+    <link rel="preload" as="image" href="https://xzhiyee.com/syc1.webp" fetchpriority="high" />
+
+    <!-- 若图片将来部署到第三方域名/CDN，加这行提前建连：
+         <link rel="preconnect" href="https://cdn.example.com" crossorigin /> -->
+
+    <!-- Font preloads（图片是主角，字体降级为 low，避免抢带宽） -->
+    <link rel="preload" href="https://blog.xzhiyee.com/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin fetchpriority="low" />
+    <link rel="preload" href="https://blog.xzhiyee.com/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin fetchpriority="low" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://blog.xzhiyee.com" />
+
+    <!-- Primary Meta Tags -->
+    <title>xzhiyee 's</title>
+    <meta name="title" content="xzhiyee 's" />
+    <meta name="description" content="记录思考、分享生活、沉淀成长" />
+    <style>
+        body {
+            margin: 0;
+            /* ============ 优化②：图片到位前的占位背景 ============
+               深色渐变替代纯黑，首屏不再是"黑屏"，感知速度更快；
+               同时图片加载失败时页面也不会难看。 */
+            background: radial-gradient(130% 100% at 50% 15%, #131320 0%, #07070c 55%, #000000 100%);
+            position: relative;
+            isolation: isolate;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* ================= WebGL 水波纹画布 ================= */
+        #water-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0; /* 替代原来的 body::before */
+            pointer-events: none; /* 让点击穿透到下层 */
+            opacity: 0;
+            transition: opacity 0.6s ease; /* 图片加载完后渐显（略缩短，更跟手） */
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        main {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 2;
+        }
+
+        .content { transform: translateY(-10vh); }
+
+        h1 {
+            margin: 0 0 16px 0;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 a {
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+        h1 a:hover { opacity: 0.8; }
+
+        .desc {
+            font-size: 1.15rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+        }
+
+        .footer .beian {
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .footer .beian a {
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer .beian a:hover {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: underline;
+        }
+
+        /* ================= 入口按钮组（博客 + AI） ================= */
+        /* 容器负责定位与排布，单个按钮只负责自身外观 */
+        .cta-group {
+            position: fixed;
+            left: 50%;
+            top: 72%;
+            translate: -50% -50%;
+            z-index: 3;
+            display: flex;
+            align-items: flex-start;
+            gap: 56px;
+        }
+
+        .cta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-cta {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            color: #fff;
+            animation: cta-float 2.5s ease-in-out infinite;
+            transition: background 0.3s ease, scale 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
+        }
+
+        /* 两个按钮错峰浮动，避免整齐划一的机械感 */
+        .cta-item:nth-child(2) .bg-cta { animation-delay: -1.25s; }
+
+        .cta-item:hover .bg-cta,
+        .cta-item:focus-visible .bg-cta {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+            scale: 1.05;
+        }
+
+        .cta-item:focus-visible { outline: none; }
+
+        .bg-cta-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 24px;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        .cta-label {
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+
+        .cta-item:hover .cta-label,
+        .cta-item:focus-visible .cta-label {
+            color: rgba(255, 255, 255, 1);
+        }
+
+        @keyframes cta-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* ================= 页面过渡遮罩 ================= */
+        #page-transition {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            opacity: 0;
+            transition: opacity 0.4s ease, backdrop-filter 0.4s ease, background 0.4s ease;
+        }
+
+        #page-transition.is-active {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .desc { font-size: 1rem; }
+            .cta-group { top: 78%; gap: 40px; }
+            .bg-cta { width: 56px; height: 56px; }
+            .bg-cta-icon { font-size: 22px; }
+            .cta-label { font-size: 0.7rem; }
+        }
+
+        /* 尊重系统的"减弱动态效果"设置 */
+        @media (prefers-reduced-motion: reduce) {
+            .bg-cta { animation: none; }
+        }
+    </style>
+</head>
+<body>
+<!-- WebGL 画布，通过 data-bg 传入图片路径 -->
+<canvas id="water-canvas" data-bg="https://xzhiyee.com/syc1.webp"></canvas>
+
+<main>
+    <div class="content">
+        <h1><a href="#">xzhiyee 's</a></h1>
+        <p class="desc">记录思考、分享生活、沉淀成长</p>
+    </div>
+    <div class="footer">
+        <div>© 2026 xzhiyee.com</div>
+        <div class="beian">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">湘ICP备2026011858号</a>
+        </div>
+    </div>
+</main>
+
+<!-- ================= 双入口：博客 / AI ================= -->
+<div class="cta-group">
+    <!-- 入口 1：博客 -->
+    <a class="cta-item" href="https://blog.xzhiyee.com" aria-label="进入博客">
+        <span class="bg-cta"><span class="bg-cta-icon">↓</span></span>
+        <span class="cta-label">博客</span>
+    </a>
+
+    <!-- 入口 2：AI 界面（⚠️ 把 href 换成你真实的 AI 界面地址即可） -->
+    <a class="cta-item" href="https://ai.xzhiyee.com" aria-label="进入 AI 界面">
+        <span class="bg-cta"><span class="bg-cta-icon">✦</span></span>
+        <span class="cta-label">AI 助手</span>
+    </a>
+</div>
+
+<div id="page-transition" aria-hidden="true"></div>
+
+<!-- WebGL 水波纹核心逻辑 -->
+<script>
+    (() => {
+        const canvas = document.getElementById('water-canvas');
+        const ctaItems = document.querySelectorAll('.cta-item');
+        if (!canvas) return;
+
+        const gl = canvas.getContext('webgl');
+        if (!gl) return;
+
+        const vsSource = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_position * 0.5 + 0.5;
+                v_uv.y = 1.0 - v_uv.y;
+                gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+        `;
+
+        // 【核心修改区】：支持多点触控/点击的波纹算法
+        const MAX_RIPPLES = 5; // 最多同时存在 5 个波纹
+        const fsSource = `
+            precision highp float;
+            varying vec2 v_uv;
+            uniform sampler2D u_image;
+            uniform vec2 u_resolution;
+            uniform vec2 u_imageRes;
+            uniform float u_time;
+
+            // 存储波纹数据的数组：x坐标, y坐标, 触发时间
+            uniform vec3 u_ripples[${MAX_RIPPLES}];
+
+            void main() {
+                // 背景 cover 居中算法
+                vec2 ratio = u_resolution / u_imageRes;
+                float coverRatio = max(ratio.x, ratio.y);
+                vec2 coverSize = u_imageRes * coverRatio;
+                vec2 offset = (coverSize - u_resolution) / 2.0 / coverSize;
+                vec2 baseUV = v_uv * (u_resolution / coverSize) + offset;
+
+                float maxDim = max(u_resolution.x, u_resolution.y);
+                vec2 pixelCoord = v_uv * u_resolution;
+
+                vec2 totalDistortion = vec2(0.0);
+
+                // 遍历所有激活的波纹并叠加效果
+                for(int i = 0; i < ${MAX_RIPPLES}; i++) {
+                    float startTime = u_ripples[i].z;
+                    if (startTime > 0.0) {
+                        float age = u_time - startTime;
+
+                        // 波纹存活时间：3.5秒
+                        if (age > 0.0 && age < 3.5) {
+                            vec2 center = u_ripples[i].xy;
+                            vec2 p = (pixelCoord - center) / maxDim;
+                            float dist = length(p);
+
+                            // 扩散速度
+                            float radius = age * 0.5;
+                            float d = dist - radius;
+
+                            // 限制波纹环的宽度 (0.08 让波纹看起来更细、更轻微)
+                            float envelope = smoothstep(0.08, 0.0, abs(d));
+
+                            // 波纹密度
+                            float wave = sin(d * 40.0) * envelope;
+
+                            // 随时间自然淡出
+                            float fade = smoothstep(3.5, 0.0, age);
+
+                            vec2 dir = dist > 0.0 ? p / dist : vec2(0.0);
+
+                            // 0.0025 是折射强度，非常轻微自然
+                            totalDistortion += dir * wave * fade * 0.0025;
+                        }
+                    }
+                }
+
+                gl_FragColor = texture2D(u_image, baseUV + totalDistortion);
+            }
+        `;
+
+        function createShader(type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            return shader;
+        }
+
+        const program = gl.createProgram();
+        gl.attachShader(program, createShader(gl.VERTEX_SHADER, vsSource));
+        gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fsSource));
+        gl.linkProgram(program);
+        gl.useProgram(program);
+
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1, -1,  1, -1,  -1, 1,
+            -1,  1,  1, -1,   1, 1
+        ]), gl.STATIC_DRAW);
+
+        const positionLocation = gl.getAttribLocation(program, "a_position");
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const locResolution = gl.getUniformLocation(program, "u_resolution");
+        const locImageRes = gl.getUniformLocation(program, "u_imageRes");
+        const locTime = gl.getUniformLocation(program, "u_time");
+        const locRipples = gl.getUniformLocation(program, "u_ripples");
+
+        // 初始化波纹数据数组 [x, y, time, x, y, time, ...]
+        const ripplesData = new Float32Array(MAX_RIPPLES * 3);
+        let rippleIndex = 0;
+        let startTime = performance.now();
+
+        // 监听全局点击事件
+        window.addEventListener('click', (e) => {
+            const x = e.clientX;
+            // WebGL 的 Y 轴是从下往上的，需要翻转坐标
+            const y = e.clientY;
+            const currentTime = (performance.now() - startTime) / 1000;
+
+            // 记录当前点击的坐标和时间
+            ripplesData[rippleIndex * 3 + 0] = x;
+            ripplesData[rippleIndex * 3 + 1] = y;
+            ripplesData[rippleIndex * 3 + 2] = currentTime;
+
+            // 循环覆盖最旧的波纹
+            rippleIndex = (rippleIndex + 1) % MAX_RIPPLES;
+        });
+
+        // ============ 优化③：显式声明高优先级 ============
+        // 正常情况下图片已被 <head> 里的 preload 命中缓存；
+        // 这行是兜底，保证即使 preload 未生效，也按最高优先级下载。
+        const img = new Image();
+        img.fetchPriority = 'high';
+        img.src = canvas.getAttribute('data-bg');
+        img.onload = () => {
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+            gl.uniform2f(locImageRes, img.width, img.height);
+            canvas.style.opacity = '1';
+            requestAnimationFrame(render);
+        };
+
+        function render(now) {
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.uniform2f(locResolution, canvas.width, canvas.height);
+            }
+
+            gl.uniform1f(locTime, (now - startTime) / 1000);
+            // 将最新的波纹数据传递给着色器
+            gl.uniform3fv(locRipples, ripplesData);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            requestAnimationFrame(render);
+        }
+
+        // ============ 入口跳转逻辑 ============
+        // 多个入口统一处理：过渡动画 → 新标签页打开 → 收回遮罩
+        const transitionLayer = document.getElementById("page-transition");
+
+        ctaItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+                // 保留用户的组合键/中键行为（新窗口、新标签等交给浏览器默认处理）
+                if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+
+                e.preventDefault();
+                const href = item.getAttribute("href") || "/";
+
+                if (transitionLayer) {
+                    transitionLayer.classList.remove("is-active");
+                    void transitionLayer.offsetWidth; // 强制重排，保证动画可重放
+                    transitionLayer.classList.add("is-active");
+                }
+
+                setTimeout(() => {
+                    window.open(href, "_blank");
+                    // 新标签页打开后移除模糊遮罩，恢复当前页面
+                    if (transitionLayer) {
+                        transitionLayer.classList.remove("is-active");
+                    }
+                }, 350);
+            });
+        });
+    })();
+</script>
+</body>
+</html>
